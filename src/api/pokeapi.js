@@ -81,3 +81,16 @@ export function spriteFor(id) {
 export function spriteSmall(id) {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
 }
+
+// Selecciona el nombre en español dentro de un array `names` de PokéAPI.
+export function pickEsName(names, fallback = '') {
+  if (!Array.isArray(names)) return fallback;
+  const es = names.find(n => n.language?.name === 'es');
+  return es?.name || fallback;
+}
+
+// Extrae id numérico de una URL de recurso PokéAPI.
+export function idFromUrl(url) {
+  const m = String(url || '').match(/\/(\d+)\/?$/);
+  return m ? Number(m[1]) : null;
+}

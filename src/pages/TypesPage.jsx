@@ -1,5 +1,8 @@
 import { useMemo, useState } from 'react';
-import { TYPES, TYPE_ES, getAttackMultiplier, defensiveProfile, bucketize, offensiveProfile } from '../data/typeChart.js';
+import {
+  TYPES, TYPE_ES, getAttackMultiplier,
+  defensiveProfile, bucketize, offensiveProfile, offensiveProfileForTypes
+} from '../data/typeChart.js';
 import TypeBadge from '../components/TypeBadge.jsx';
 
 export default function TypesPage() {
@@ -16,6 +19,26 @@ export default function TypesPage() {
 
   const comboTypes = t2 && t2 !== 'none' ? [t1, t2] : [t1];
   const comboBuckets = useMemo(() => bucketize(defensiveProfile(comboTypes)), [comboTypes]);
+  const comboOff = useMemo(() => offensiveProfileForTypes(comboTypes), [comboTypes]);
+  const comboNoEffect = useMemo(() => {
+    // Tipos contra los que TODOS los tipos ofensivos no hacen nada
+    const res = [];
+    for (const def of TYPES) {
+      const allZero = comboTypes.every(atk => getAttackMultiplier(atk, def) === 0);
+      if (allZero) res.push(def);
+    }
+    return res;
+  }, [comboTypes]);
+  const comboNotVery = useMemo(() => {
+    // Tipos donde el mejor de nuestros ataques es < 1 (y > 0)
+    const res = [];
+    for (const def of TYPES) {
+      let best = 0;
+      for (const atk of comboTypes) best = Math.max(best, getAttackMultiplier(atk, def));
+      if (best > 0 && best < 1) res.push(def);
+    }
+    return res;
+  }, [comboTypes]);
 
   return (
     <section className="page page-types">
@@ -72,7 +95,17 @@ export default function TypesPage() {
         <div className="combo-preview">
           {comboTypes.map(t => <TypeBadge key={t} type={t} size="lg" />)}
         </div>
+        <h4 className="combo-subtitle">Defensiva combinada</h4>
         <Buckets buckets={comboBuckets} />
+        <h4 className="combo-subtitle">Ofensiva combinada</h4>
+        <div className="effect-rows">
+          <Row
+            label="Súper eficaz contra"
+            items={Object.entries(comboOff).filter(([,m])=>m>1).map(([t])=>t)}
+          />
+          <Row label="Poco eficaz contra" items={comboNotVery} />
+          <Row label="No afecta a" items={comboNoEffect} />
+        </div>
       </section>
     </section>
   );

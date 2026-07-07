@@ -529,3 +529,174 @@ img { max-width: 100%; display: block; }
   .theme-toggle-label { display: none; }
   .theme-toggle { padding: .4rem .55rem; }
 }
+
+/* ==========================================================================
+   Autocompletado buscador Pokémon
+   ========================================================================== */
+.search-wrap { position: relative; flex: 1; }
+.autocomplete {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  z-index: 20;
+  list-style: none;
+  margin: 0; padding: .35rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  max-height: 320px;
+  overflow-y: auto;
+}
+.autocomplete-item {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: .5rem;
+  padding: .4rem .55rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-transform: capitalize;
+}
+.autocomplete-item.active,
+.autocomplete-item:hover { background: var(--bg-2); }
+.autocomplete-item img { width: 36px; height: 36px; image-rendering: pixelated; }
+.ac-name { font-weight: 600; }
+.ac-id { color: var(--text-muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
+
+/* ==========================================================================
+   Calculadora combinada
+   ========================================================================== */
+.combo-subtitle {
+  margin: 1rem 0 .5rem;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+/* ==========================================================================
+   Partidas
+   ========================================================================== */
+.partidas-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+.partidas-list {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: .75rem;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  position: sticky; top: 80px;
+  display: flex; flex-direction: column; gap: .6rem;
+}
+.partidas-new { display: flex; gap: .35rem; }
+.partidas-new .search-input { padding: .55rem .75rem; font-size: .9rem; }
+.partidas-new .btn { padding: .55rem .8rem; font-size: .9rem; }
+.partidas-ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .3rem; }
+.partida-item {
+  display: flex; flex-direction: column; align-items: flex-start; gap: .15rem;
+  width: 100%; text-align: left;
+  padding: .55rem .7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  transition: border-color .15s, background .15s, transform .15s;
+}
+.partida-item:hover { border-color: var(--pokeblue); transform: translateY(-1px); }
+.partida-item.active { border-color: var(--pokered); background: rgba(238,21,21,.08); }
+.partida-item-name { font-weight: 700; }
+.partida-item-meta { font-size: .75rem; color: var(--text-muted); }
+
+.partidas-detail { display: grid; gap: 1rem; }
+.partida-head-card {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap;
+}
+.partida-title-input {
+  flex: 1;
+  font-size: 1.4rem; font-weight: 800;
+  border: none; background: transparent; color: var(--text);
+  padding: .25rem .35rem; border-radius: var(--radius-sm);
+  min-width: 200px;
+}
+.partida-title-input:focus { outline: none; background: var(--bg-2); }
+.partida-head-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.partida-summary { display: flex; gap: 1rem; color: var(--text-muted); }
+.partida-summary strong { color: var(--text); font-size: 1.05rem; }
+
+.btn-danger {
+  background: transparent; color: var(--pokered); border-color: var(--pokered);
+}
+.btn-danger:hover { background: var(--pokered); color: #fff; }
+
+.deaths-card { text-align: center; }
+.deaths-counter {
+  display: inline-flex; align-items: center; gap: 1rem;
+  padding: .5rem 1rem;
+  background: var(--bg-2); border-radius: 999px;
+}
+.deaths-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: none; background: var(--pokered); color: #fff;
+  font-size: 1.5rem; font-weight: 700;
+  display: grid; place-items: center;
+  box-shadow: var(--shadow-sm);
+  transition: transform .15s, background .15s;
+}
+.deaths-btn:hover { transform: scale(1.08); background: var(--pokered-dark); }
+.deaths-value {
+  min-width: 60px;
+  font-size: 2rem; font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.route-new { display: flex; gap: .5rem; }
+.routes-ul { list-style: none; margin: 1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+.route-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto;
+  gap: .5rem; align-items: center;
+  padding: .5rem .65rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: background .15s, border-color .15s;
+}
+.route-row.done { background: rgba(122,199,76,.12); border-color: rgba(122,199,76,.4); }
+.route-check { display: flex; align-items: center; gap: .5rem; cursor: pointer; font-weight: 600; }
+.route-check input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--pokered); }
+.route-name { text-transform: capitalize; }
+.route-row.done .route-name { text-decoration: line-through; color: var(--text-muted); }
+.route-pokemon {
+  padding: .45rem .6rem; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--surface);
+  font-family: inherit; font-size: .9rem; color: var(--text);
+}
+.route-pokemon:focus { outline: none; border-color: var(--pokeblue); }
+.route-pokemon:disabled { opacity: .5; cursor: not-allowed; }
+.route-remove {
+  border: none; background: transparent; color: var(--text-muted);
+  width: 32px; height: 32px; border-radius: 50%; font-size: 1rem;
+  transition: background .15s, color .15s;
+}
+.route-remove:hover { background: rgba(238,21,21,.12); color: var(--pokered); }
+
+.empty-state.small { padding: 1.5rem .75rem; font-size: .9rem; }
+
+@media (max-width: 760px) {
+  .partidas-layout { grid-template-columns: 1fr; }
+  .partidas-list { position: static; }
+  .route-row { grid-template-columns: 1fr; }
+  .partida-head-card { flex-direction: column; align-items: stretch; }
+}
+
+[data-theme="dark"] .autocomplete { background: var(--surface); }
+[data-theme="dark"] .partida-item.active { background: rgba(255,118,118,.12); border-color: #ff7676; }
+[data-theme="dark"] .route-row.done { background: rgba(122,199,76,.08); }
+

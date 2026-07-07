@@ -1,13 +1,16 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getPokemon, getPokemonSpecies, getEvolutionChain, spriteFor, spriteSmall } from '../api/pokeapi.js';
+import {
+  getPokemon, getPokemonSpecies, getEvolutionChain,
+  spriteFor, spriteSmall, listAllPokemon, pickEsName, idFromUrl, apiGet
+} from '../api/pokeapi.js';
 import { defensiveProfile, bucketize, offensiveProfileForTypes, TYPE_ES } from '../data/typeChart.js';
 import TypeBadge from '../components/TypeBadge.jsx';
 import Loader from '../components/Loader.jsx';
 import ErrorMsg from '../components/ErrorMsg.jsx';
 
 const STAT_LABELS = {
-  hp: 'HP', attack: 'Ataque', defense: 'Defensa',
+  hp: 'PS', attack: 'Ataque', defense: 'Defensa',
   'special-attack': 'At. Esp.', 'special-defense': 'Def. Esp.', speed: 'Velocidad'
 };
 const STAT_MAX = 255;
@@ -21,6 +24,38 @@ export default function PokemonPage() {
   const [chain, setChain] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Autocompletado
+  const [allList, setAllList] = useState([]); // [{name, id}]
+  const [showSug, setShowSug] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    listAllPokemon()
+      .then(d => {
+        const items = d.results.map(r => ({ name: r.name, id: idFromUrl(r.url) }));
+        setAllList(items);
+      })
+      .catch(() => { /* silencioso */ });
+  }, []);
+
+  useEffect(() => {
+    function onDocClick(e) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setShowSug(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
+
+  const suggestions = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    const byId = /^\d+$/.test(q);
+    return allList
+      .filter(p => byId ? String(p.id).startsWith(q) : p.name.includes(q))
+      .slice(0, 8);
+  }, [query, allList]);
 
   const load = useCallback(async (q) => {
     if (!q) return;
@@ -54,18 +89,30 @@ export default function PokemonPage() {
       setQuery(nameParam);
       load(nameParam);
     } else if (!pokemon) {
-      // Carga inicial con un Pokémon destacado
       load('pikachu');
       setQuery('pikachu');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nameParam]);
 
+  function goTo(nameOrId) {
+    setShowSug(false);
+    navigate(`/pokemon/${encodeURIComponent(String(nameOrId).toLowerCase())}`);
+  }
+
   function onSubmit(e) {
     e.preventDefault();
     const q = query.trim().toLowerCase();
     if (!q) return;
-    navigate(`/pokemon/${encodeURIComponent(q)}`);
+    if (suggestions[activeIdx]) goTo(suggestions[activeIdx].name);
+    else goTo(q);
+  }
+
+  function onKeyDown(e) {
+    if (!showSug || suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActiveIdx(i => Math.min(i + 1, suggestions.length - 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setActiveIdx(i => Math.max(i - 1, 0)); }
+    else if (e.key === 'Escape') setShowSug(false);
   }
 
   return (
@@ -75,15 +122,35 @@ export default function PokemonPage() {
         <p className="page-sub">Busca un Pokémon por nombre o número.</p>
       </div>
 
-      <form className="search-bar" onSubmit={onSubmit}>
-        <input
-          className="search-input"
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Ej: pikachu, charizard, 25, 6"
-          aria-label="Buscar Pokémon"
-        />
+      <form className="search-bar" onSubmit={onSubmit} ref={wrapRef} autoComplete="off">
+        <div className="search-wrap">
+          <input
+            className="search-input"
+            type="text"
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setShowSug(true); setActiveIdx(0); }}
+            onFocus={() => setShowSug(true)}
+            onKeyDown={onKeyDown}
+            placeholder="Ej: pikachu, charizard, 25, 6"
+            aria-label="Buscar Pokémon"
+          />
+          {showSug && suggestions.length > 0 && (
+            <ul className="autocomplete">
+              {suggestions.map((s, i) => (
+                <li
+                  key={s.name}
+                  className={'autocomplete-item' + (i === activeIdx ? ' active' : '')}
+                  onMouseEnter={() => setActiveIdx(i)}
+                  onMouseDown={(e) => { e.preventDefault(); goTo(s.name); }}
+                >
+                  <img src={spriteSmall(s.id)} alt="" loading="lazy" />
+                  <span className="ac-name">{s.name}</span>
+                  <span className="ac-id">#{String(s.id).padStart(4, '0')}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <button className="btn btn-primary" type="submit">Buscar</button>
       </form>
 
@@ -100,6 +167,9 @@ function PokemonDetail({ pokemon, species, chain }) {
   const types = pokemon.types.map(t => t.type.name);
   const defProfile = useMemo(() => bucketize(defensiveProfile(types)), [types]);
   const offProfile = useMemo(() => offensiveProfileForTypes(types), [types]);
+  const [abilitiesEs, setAbilitiesEs] = useState({});
+
+  const nameEs = useMemo(() => pickEsName(species?.names, pokemon.name), [species, pokemon.name]);
   const flavor = useMemo(() => {
     if (!species?.flavor_text_entries) return null;
     const es = species.flavor_text_entries.find(e => e.language.name === 'es');
@@ -107,12 +177,30 @@ function PokemonDetail({ pokemon, species, chain }) {
     return (es || en)?.flavor_text?.replace(/\f|\n/g, ' ');
   }, [species]);
 
+  // Traducir habilidades al español (carga perezosa por habilidad).
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      const map = {};
+      await Promise.all(pokemon.abilities.map(async (a) => {
+        try {
+          const data = await apiGet(a.ability.url.replace('https://pokeapi.co/api/v2/', ''));
+          map[a.ability.name] = pickEsName(data.names, a.ability.name);
+        } catch {
+          map[a.ability.name] = a.ability.name;
+        }
+      }));
+      if (!cancel) setAbilitiesEs(map);
+    })();
+    return () => { cancel = true; };
+  }, [pokemon]);
+
   return (
     <article className="poke-detail">
       <div className={`poke-hero type-bg-${types[0]}`}>
         <div className="poke-hero-text">
           <div className="poke-number">#{String(pokemon.id).padStart(4, '0')}</div>
-          <h2 className="poke-name">{pokemon.name}</h2>
+          <h2 className="poke-name">{nameEs}</h2>
           <div className="poke-types">
             {types.map(t => <TypeBadge key={t} type={t} size="lg" />)}
           </div>
@@ -121,11 +209,11 @@ function PokemonDetail({ pokemon, species, chain }) {
             <div><span>Peso</span><strong>{(pokemon.weight / 10).toFixed(1)} kg</strong></div>
             <div>
               <span>Habilidades</span>
-              <strong>{pokemon.abilities.map(a => a.ability.name).join(', ')}</strong>
+              <strong>{pokemon.abilities.map(a => abilitiesEs[a.ability.name] || a.ability.name).join(', ')}</strong>
             </div>
           </div>
         </div>
-        <img className="poke-hero-img" src={spriteFor(pokemon.id)} alt={pokemon.name} loading="lazy" />
+        <img className="poke-hero-img" src={spriteFor(pokemon.id)} alt={nameEs} loading="lazy" />
       </div>
 
       {flavor && (
@@ -231,10 +319,18 @@ function EvolutionChain({ chain }) {
 function EvoNode({ node }) {
   const navigate = useNavigate();
   const id = extractIdFromSpeciesUrl(node.url);
+  const [nameEs, setNameEs] = useState(node.name);
+  useEffect(() => {
+    let cancel = false;
+    apiGet(`pokemon-species/${node.name}`)
+      .then(data => { if (!cancel) setNameEs(pickEsName(data.names, node.name)); })
+      .catch(() => {});
+    return () => { cancel = true; };
+  }, [node.name]);
   return (
     <button className="evo-node" onClick={() => navigate(`/pokemon/${node.name}`)}>
-      <img src={spriteSmall(id)} alt={node.name} loading="lazy" />
-      <span>{node.name}</span>
+      <img src={spriteSmall(id)} alt={nameEs} loading="lazy" />
+      <span>{nameEs}</span>
     </button>
   );
 }

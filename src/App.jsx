@@ -6,6 +6,7 @@ import Loader from './components/Loader.jsx';
 const PokemonPage = lazy(() => import('./pages/PokemonPage.jsx'));
 const TypesPage = lazy(() => import('./pages/TypesPage.jsx'));
 const MovesPage = lazy(() => import('./pages/MovesPage.jsx'));
+const PartidasPage = lazy(() => import('./pages/PartidasPage.jsx'));
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
             <Route path="/pokemon/:name" element={<PokemonPage />} />
             <Route path="/tipos" element={<TypesPage />} />
             <Route path="/movimientos" element={<MovesPage />} />
+            <Route path="/partidas" element={<PartidasPage />} />
             <Route path="*" element={<div className="not-found">404 — Página no encontrada</div>} />
           </Routes>
         </Suspense>

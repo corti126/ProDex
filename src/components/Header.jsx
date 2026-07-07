@@ -15,6 +15,7 @@ export default function Header() {
           <NavLink to="/pokemon" className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>Pokémon</NavLink>
           <NavLink to="/tipos" className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>Tipos</NavLink>
           <NavLink to="/movimientos" className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>Movimientos</NavLink>
+          <NavLink to="/partidas" className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>Partidas</NavLink>
           <ThemeToggle />
         </nav>
       </div>

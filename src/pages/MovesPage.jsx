@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getMove, listAllMoves } from '../api/pokeapi.js';
+import { getMove, listAllMoves, pickEsName } from '../api/pokeapi.js';
 import { offensiveProfile, TYPE_ES } from '../data/typeChart.js';
 import TypeBadge from '../components/TypeBadge.jsx';
 import Loader from '../components/Loader.jsx';
 import ErrorMsg from '../components/ErrorMsg.jsx';
+
+const CAT_ES = { physical: 'Físico', special: 'Especial', status: 'Estado' };
 
 export default function MovesPage() {
   const [allMoves, setAllMoves] = useState([]);
@@ -81,6 +83,7 @@ export default function MovesPage() {
 function MoveDetail({ move }) {
   const type = move.type.name;
   const cat = move.damage_class?.name;
+  const nameEs = pickEsName(move.names, move.name.replace(/-/g, ' '));
   const effectEntry = move.effect_entries?.find(e => e.language.name === 'en');
   const flavor = move.flavor_text_entries?.find(e => e.language.name === 'es')
     || move.flavor_text_entries?.find(e => e.language.name === 'en');
@@ -91,12 +94,13 @@ function MoveDetail({ move }) {
   return (
     <article className="move-card">
       <header className={`move-head type-bg-${type}`}>
-        <h2>{move.name.replace(/-/g, ' ')}</h2>
+        <h2>{nameEs}</h2>
         <div className="move-head-meta">
           <TypeBadge type={type} size="md" />
-          <span className={`cat cat-${cat}`}>{cat || '—'}</span>
+          <span className={`cat cat-${cat}`}>{CAT_ES[cat] || cat || '—'}</span>
         </div>
       </header>
+
 
       <div className="move-stats">
         <Stat label="Potencia" value={move.power ?? '—'} />
