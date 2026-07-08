@@ -28,7 +28,10 @@ function loadState() {
 }
 
 function saveState(state) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+  }
 }
 
 function uid() {
@@ -59,7 +62,9 @@ export default function PartidasPage() {
   const [sortBy, setSortBy] = useState('recent');
   const [page, setPage] = useState(1);
 
-  useEffect(() => { saveState(state); }, [state]);
+  useEffect(() => {
+    saveState(state);
+  }, [state]);
   useEffect(() => { setPage(1); }, [state.activeId, query, statusFilter, sortBy]);
 
   const active = useMemo(
@@ -106,16 +111,36 @@ export default function PartidasPage() {
 
   function quickCapture(e) {
     e.preventDefault();
+
+
     if (!active) return;
+
     const rname = quickRoute.trim();
     const poke = quickPokemon.trim();
+
     if (!rname || !poke) return;
-    updateActive(p => ({
-      ...p,
-      routes: [...p.routes, { id: uid(), name: rname, pokemon: poke, status: 'alive' }],
-    }));
-    setQuickRoute('');
-    setQuickPokemon('');
+
+    updateActive(p => {
+      const nuevo = {
+        ...p,
+        routes: [
+          ...p.routes,
+          {
+            id: uid(),
+            name: rname,
+            pokemon: poke,
+            status: "alive",
+          },
+        ],
+      };
+
+
+      return nuevo;
+    });
+
+
+    setQuickRoute("");
+    setQuickPokemon("");
   }
 
   function setStatus(rid, status) {
