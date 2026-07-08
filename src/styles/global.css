@@ -577,11 +577,11 @@ img { max-width: 100%; display: block; }
 }
 
 /* ==========================================================================
-   Partidas
+   Partidas — Nuzlocke Tracker
    ========================================================================== */
 .partidas-layout {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 280px 1fr;
   gap: 1rem;
   align-items: start;
 }
@@ -593,110 +593,250 @@ img { max-width: 100%; display: block; }
   box-shadow: var(--shadow-sm);
   position: sticky; top: 80px;
   display: flex; flex-direction: column; gap: .6rem;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
 }
 .partidas-new { display: flex; gap: .35rem; }
-.partidas-new .search-input { padding: .55rem .75rem; font-size: .9rem; }
-.partidas-new .btn { padding: .55rem .8rem; font-size: .9rem; }
-.partidas-ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .3rem; }
-.partida-item {
-  display: flex; flex-direction: column; align-items: flex-start; gap: .15rem;
+.partidas-new .search-input { padding: .55rem .75rem; font-size: .9rem; flex: 1; }
+.partidas-new .btn { padding: .55rem .8rem; font-size: .85rem; white-space: nowrap; }
+.partidas-ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; }
+
+.partida-item.nz-partida {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "name date" "metrics metrics";
+  gap: .15rem .5rem;
   width: 100%; text-align: left;
-  padding: .55rem .7rem;
+  padding: .6rem .7rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface-2);
+  cursor: pointer;
   transition: border-color .15s, background .15s, transform .15s;
 }
-.partida-item:hover { border-color: var(--pokeblue); transform: translateY(-1px); }
-.partida-item.active { border-color: var(--pokered); background: rgba(238,21,21,.08); }
-.partida-item-name { font-weight: 700; }
-.partida-item-meta { font-size: .75rem; color: var(--text-muted); }
-
-.partidas-detail { display: grid; gap: 1rem; }
-.partida-head-card {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 1rem; flex-wrap: wrap;
+.partida-item.nz-partida:hover { border-color: var(--pokeblue); transform: translateY(-1px); }
+.partida-item.nz-partida.active {
+  border-color: var(--pokeblue);
+  background: rgba(59,130,246,.10);
+  box-shadow: inset 0 0 0 1px rgba(59,130,246,.4);
 }
+.partida-item-name { grid-area: name; font-weight: 700; font-size: .95rem; }
+.nz-partida-date { grid-area: date; font-size: .7rem; color: var(--text-muted); align-self: center; }
+.nz-partida-metrics { grid-area: metrics; display: flex; gap: .4rem; margin-top: .2rem; }
+.nz-metric {
+  font-size: .7rem; font-weight: 600;
+  padding: .12rem .45rem; border-radius: 999px;
+  background: var(--bg-2); color: var(--text-muted);
+}
+.nz-metric-progress { background: rgba(251,191,36,.15); color: #d97706; }
+.nz-metric-dead { background: rgba(239,68,68,.15); color: #dc2626; }
+[data-theme="dark"] .nz-metric-progress { color: #fbbf24; }
+[data-theme="dark"] .nz-metric-dead { color: #f87171; }
+
+.partidas-detail { display: grid; gap: 1rem; min-width: 0; }
+
+/* Head card */
+.nz-head-card {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap; padding: 1rem 1.25rem;
+}
+.nz-head-title { display: flex; align-items: center; gap: .75rem; flex: 1; min-width: 0; flex-wrap: wrap; }
 .partida-title-input {
   flex: 1;
-  font-size: 1.4rem; font-weight: 800;
+  font-size: 1.35rem; font-weight: 800;
   border: none; background: transparent; color: var(--text);
   padding: .25rem .35rem; border-radius: var(--radius-sm);
-  min-width: 200px;
+  min-width: 180px;
 }
 .partida-title-input:focus { outline: none; background: var(--bg-2); }
-.partida-head-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-.partida-summary { display: flex; gap: 1rem; color: var(--text-muted); }
-.partida-summary strong { color: var(--text); font-size: 1.05rem; }
+.nz-delete-btn { font-size: .85rem; padding: .5rem .9rem; }
 
 .btn-danger {
   background: transparent; color: var(--pokered); border-color: var(--pokered);
 }
 .btn-danger:hover { background: var(--pokered); color: #fff; }
 
-.deaths-card { text-align: center; }
-.deaths-counter {
-  display: inline-flex; align-items: center; gap: 1rem;
-  padding: .5rem 1rem;
-  background: var(--bg-2); border-radius: 999px;
+/* Badges */
+.nz-badge {
+  display: inline-flex; align-items: center;
+  padding: .18rem .55rem; border-radius: 999px;
+  font-size: .72rem; font-weight: 700; letter-spacing: .02em;
 }
-.deaths-btn {
-  width: 44px; height: 44px; border-radius: 50%;
-  border: none; background: var(--pokered); color: #fff;
-  font-size: 1.5rem; font-weight: 700;
-  display: grid; place-items: center;
-  box-shadow: var(--shadow-sm);
-  transition: transform .15s, background .15s;
-}
-.deaths-btn:hover { transform: scale(1.08); background: var(--pokered-dark); }
-.deaths-value {
-  min-width: 60px;
-  font-size: 2rem; font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
-}
+.nz-badge-blue { background: rgba(59,130,246,.15); color: #2563eb; }
+.nz-badge-alive { background: rgba(34,197,94,.18); color: #15803d; }
+.nz-badge-dead { background: rgba(239,68,68,.18); color: #b91c1c; }
+.nz-badge-pending { background: rgba(148,163,184,.20); color: #475569; }
+[data-theme="dark"] .nz-badge-blue { color: #60a5fa; }
+[data-theme="dark"] .nz-badge-alive { color: #4ade80; }
+[data-theme="dark"] .nz-badge-dead { color: #f87171; }
+[data-theme="dark"] .nz-badge-pending { color: #cbd5e1; }
 
-.route-new { display: flex; gap: .5rem; }
-.routes-ul { list-style: none; margin: 1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
-.route-row {
+/* Stats grid */
+.nz-stats-grid {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto;
-  gap: .5rem; align-items: center;
-  padding: .5rem .65rem;
-  background: var(--surface-2);
+  grid-template-columns: repeat(4, 1fr);
+  gap: .75rem;
+}
+.nz-stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow-sm);
+  display: flex; flex-direction: column; gap: .3rem;
+  position: relative; overflow: hidden;
+}
+.nz-stat-card::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--pokeblue);
+}
+.nz-stat-alive::before { background: #22c55e; }
+.nz-stat-dead::before { background: #ef4444; }
+.nz-stat-progress::before { background: #f59e0b; }
+.nz-stat-label {
+  font-size: .78rem; font-weight: 600; color: var(--text-muted);
+  display: flex; align-items: center; gap: .35rem;
+}
+.nz-stat-value {
+  font-size: 2rem; font-weight: 800; color: var(--text);
+  font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+.nz-stat-sub { font-size: .72rem; color: var(--text-muted); }
+
+/* Quick capture */
+.nz-section-title { margin: 0 0 .75rem; font-size: 1rem; }
+.nz-capture-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: .5rem;
+}
+.nz-capture-form .search-input { font-size: .9rem; }
+
+/* Routes toolbar */
+.nz-routes-toolbar {
+  display: flex; gap: .5rem; flex-wrap: wrap; align-items: center;
+  margin-bottom: .75rem;
+}
+.nz-toolbar-search { flex: 1; min-width: 180px; font-size: .9rem; }
+.nz-select {
+  padding: .5rem .7rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text);
+  font-family: inherit; font-size: .85rem;
+  cursor: pointer;
+}
+.nz-select:focus { outline: none; border-color: var(--pokeblue); }
+
+/* Routes list — compact single-line rows */
+.nz-routes-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.nz-route-row {
+  display: grid;
+  grid-template-columns: 24px minmax(120px, 1.3fr) minmax(140px, 1.4fr) auto auto;
+  gap: .6rem; align-items: center;
+  padding: .55rem .7rem;
+  border-bottom: 1px solid var(--border);
+  transition: background .15s;
+}
+.nz-route-row:hover { background: var(--bg-2); }
+.nz-route-row:last-child { border-bottom: none; }
+.nz-route-icon {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: .8rem; font-weight: 700;
+}
+.nz-route-alive .nz-route-icon { background: rgba(34,197,94,.2); color: #15803d; }
+.nz-route-dead .nz-route-icon { background: rgba(239,68,68,.2); color: #b91c1c; }
+.nz-route-pending .nz-route-icon { background: rgba(148,163,184,.25); color: #64748b; }
+[data-theme="dark"] .nz-route-alive .nz-route-icon { color: #4ade80; }
+[data-theme="dark"] .nz-route-dead .nz-route-icon { color: #f87171; }
+
+.nz-route-name { font-weight: 600; font-size: .92rem; text-transform: capitalize; }
+.nz-route-dead .nz-route-name { color: var(--text-muted); text-decoration: line-through; }
+
+.nz-route-poke-input {
+  padding: .35rem .55rem; border-radius: var(--radius-sm);
+  border: 1px solid transparent; background: transparent;
+  font-family: inherit; font-size: .88rem; color: var(--text);
+  min-width: 0; width: 100%;
+  text-transform: capitalize;
+}
+.nz-route-poke-input:hover { border-color: var(--border); background: var(--surface-2); }
+.nz-route-poke-input:focus { outline: none; border-color: var(--pokeblue); background: var(--surface-2); }
+.nz-route-dead .nz-route-poke-input { color: var(--text-muted); }
+
+.nz-route-actions { display: flex; gap: .3rem; align-items: center; }
+.nz-action-btn {
+  border: 1px solid var(--border);
+  background: var(--surface); color: var(--text);
+  padding: .35rem .65rem;
+  font-size: .78rem; font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+  white-space: nowrap;
+}
+.nz-action-kill:hover { background: rgba(239,68,68,.12); border-color: #ef4444; color: #dc2626; }
+.nz-action-revoke:hover { background: rgba(59,130,246,.12); border-color: var(--pokeblue); color: var(--pokeblue); }
+.nz-action-remove {
+  padding: .35rem .5rem;
+  color: var(--text-muted);
+  border-color: transparent;
+}
+.nz-action-remove:hover { color: var(--pokered); border-color: var(--pokered); background: rgba(238,21,21,.08); }
+[data-theme="dark"] .nz-action-kill:hover { color: #f87171; }
+
+.nz-route-dead { background: rgba(239,68,68,.04); }
+[data-theme="dark"] .nz-route-dead { background: rgba(239,68,68,.06); }
+
+/* Pagination */
+.nz-pagination {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: .75rem .25rem 0;
+  flex-wrap: wrap; gap: .5rem;
+  border-top: 1px solid var(--border);
+  margin-top: .5rem;
+}
+.nz-pagination-info { font-size: .8rem; color: var(--text-muted); }
+.nz-pagination-controls { display: flex; align-items: center; gap: .4rem; }
+.nz-page-btn {
+  padding: .35rem .7rem; font-size: .8rem; font-weight: 600;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  border-radius: var(--radius-sm); cursor: pointer;
   transition: background .15s, border-color .15s;
 }
-.route-row.done { background: rgba(122,199,76,.12); border-color: rgba(122,199,76,.4); }
-.route-check { display: flex; align-items: center; gap: .5rem; cursor: pointer; font-weight: 600; }
-.route-check input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--pokered); }
-.route-name { text-transform: capitalize; }
-.route-row.done .route-name { text-decoration: line-through; color: var(--text-muted); }
-.route-pokemon {
-  padding: .45rem .6rem; border-radius: var(--radius-sm);
-  border: 1px solid var(--border); background: var(--surface);
-  font-family: inherit; font-size: .9rem; color: var(--text);
+.nz-page-btn:hover:not(:disabled) { border-color: var(--pokeblue); color: var(--pokeblue); }
+.nz-page-btn:disabled { opacity: .4; cursor: not-allowed; }
+.nz-page-current {
+  font-size: .8rem; font-weight: 700; color: var(--text);
+  padding: 0 .5rem; font-variant-numeric: tabular-nums;
 }
-.route-pokemon:focus { outline: none; border-color: var(--pokeblue); }
-.route-pokemon:disabled { opacity: .5; cursor: not-allowed; }
-.route-remove {
-  border: none; background: transparent; color: var(--text-muted);
-  width: 32px; height: 32px; border-radius: 50%; font-size: 1rem;
-  transition: background .15s, color .15s;
-}
-.route-remove:hover { background: rgba(238,21,21,.12); color: var(--pokered); }
 
 .empty-state.small { padding: 1.5rem .75rem; font-size: .9rem; }
 
+/* Responsive */
+@media (max-width: 960px) {
+  .nz-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
 @media (max-width: 760px) {
   .partidas-layout { grid-template-columns: 1fr; }
-  .partidas-list { position: static; }
-  .route-row { grid-template-columns: 1fr; }
-  .partida-head-card { flex-direction: column; align-items: stretch; }
+  .partidas-list { position: static; max-height: none; }
+  .nz-capture-form { grid-template-columns: 1fr; }
+  .nz-route-row {
+    grid-template-columns: 24px 1fr auto;
+    grid-template-areas:
+      "icon name badge"
+      "icon poke poke"
+      "icon actions actions";
+    gap: .35rem .6rem;
+  }
+  .nz-route-icon { grid-area: icon; align-self: start; margin-top: .2rem; }
+  .nz-route-name { grid-area: name; }
+  .nz-route-poke-input { grid-area: poke; }
+  .nz-route-row .nz-badge { grid-area: badge; justify-self: end; }
+  .nz-route-actions { grid-area: actions; justify-content: flex-end; }
 }
 
 [data-theme="dark"] .autocomplete { background: var(--surface); }
-[data-theme="dark"] .partida-item.active { background: rgba(255,118,118,.12); border-color: #ff7676; }
-[data-theme="dark"] .route-row.done { background: rgba(122,199,76,.08); }
+
 
