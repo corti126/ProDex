@@ -316,10 +316,45 @@ function EvolutionChain({ chain }) {
   );
 }
 
+function formatEvoDetail(detail) {
+  if (!detail) return null;
+  const parts = [];
+  if (detail.min_level) parts.push(`Nv. ${detail.min_level}`);
+  if (detail.trigger?.name) {
+    const triggerMap = {
+      'level-up': 'Subida de nivel',
+      trade: 'Intercambio',
+      'use-item': 'Objeto',
+      other: 'Otro',
+    };
+    parts.push(triggerMap[detail.trigger.name] || detail.trigger.name);
+  }
+  if (detail.item?.name) parts.push(`Objeto: ${detail.item.name}`);
+  if (detail.held_item?.name) parts.push(`Llevar: ${detail.held_item.name}`);
+  if (detail.known_move?.name) parts.push(`Movimiento: ${detail.known_move.name}`);
+  if (detail.known_move_type?.name) parts.push(`Tipo mov.: ${detail.known_move_type.name}`);
+  if (detail.location?.name) parts.push(`Lugar: ${detail.location.name}`);
+  if (detail.time_of_day) parts.push(detail.time_of_day === 'day' ? 'Día' : 'Noche');
+  if (detail.min_happiness) parts.push(`Felicidad: ${detail.min_happiness}`);
+  if (detail.min_affection) parts.push(`Cariño: ${detail.min_affection}`);
+  if (detail.min_beauty) parts.push(`Belleza: ${detail.min_beauty}`);
+  if (detail.needs_overworld_rain) parts.push('Lluvia');
+  if (detail.turn_upside_down) parts.push('Voltear consola');
+  if (detail.trade_species?.name) parts.push(`Intercambiar por: ${detail.trade_species.name}`);
+  if (detail.party_species?.name) parts.push(`En equipo: ${detail.party_species.name}`);
+  if (detail.party_type?.name) parts.push(`Tipo en equipo: ${detail.party_type.name}`);
+  if (detail.relative_physical_stats !== undefined) {
+    const statsMap = { 1: 'Ataque > Defensa', 0: 'Ataque = Defensa', '-1': 'Ataque < Defensa' };
+    parts.push(statsMap[detail.relative_physical_stats]);
+  }
+  return parts.length ? parts.join(' · ') : null;
+}
+
 function EvoNode({ node }) {
   const navigate = useNavigate();
   const id = extractIdFromSpeciesUrl(node.url);
   const [nameEs, setNameEs] = useState(node.name);
+  const evoText = formatEvoDetail(node.evoDetail);
   useEffect(() => {
     let cancel = false;
     apiGet(`pokemon-species/${node.name}`)
@@ -331,15 +366,18 @@ function EvoNode({ node }) {
     <button className="evo-node" onClick={() => navigate(`/pokemon/${node.name}`)}>
       <img src={spriteSmall(id)} alt={nameEs} loading="lazy" />
       <span>{nameEs}</span>
+      {evoText && <span className="evo-detail">{evoText}</span>}
     </button>
   );
 }
 
-function flattenChain(node, depth = 0, acc = []) {
+function flattenChain(node, depth = 0, acc = [], evoDetail = null) {
   if (!acc[depth]) acc[depth] = [];
-  acc[depth].push({ name: node.species.name, url: node.species.url });
+  acc[depth].push({ name: node.species.name, url: node.species.url, evoDetail });
   for (const next of node.evolves_to || []) {
-    flattenChain(next, depth + 1, acc);
+    // evolution_details es un array; tomamos el primero (el más común)
+    const detail = next.evolution_details?.[0] || null;
+    flattenChain(next, depth + 1, acc, detail);
   }
   return acc;
 }

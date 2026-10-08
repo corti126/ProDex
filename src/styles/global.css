@@ -330,6 +330,14 @@ img { max-width: 100%; display: block; }
 }
 .evo-node:hover { transform: translateY(-3px); border-color: var(--pokered); box-shadow: var(--shadow-md); }
 .evo-node img { width: 72px; height: 72px; image-rendering: pixelated; }
+.evo-detail {
+  font-size: .7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  text-align: center;
+  font-weight: 500;
+}
+[data-theme="dark"] .evo-detail { color: var(--text-muted); }
 
 /* Loader */
 .loader { display: flex; align-items: center; justify-content: center; gap: .75rem; padding: 3rem 1rem; color: var(--text-muted); }
