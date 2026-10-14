@@ -26,7 +26,7 @@ export default function App() {
         </Suspense>
       </main>
       <footer className="app-footer">
-        Datos: <a href="https://pokeapi.co" target="_blank" rel="noreferrer">PokéAPI</a> · Pokémon Battle Helper
+        Datos: <a href="https://pokeapi.co" target="_blank" rel="noreferrer">PokéAPI</a> · Pokémon Wiki
       </footer>
     </div>
   );
